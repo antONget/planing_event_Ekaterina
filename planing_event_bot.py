@@ -54,7 +54,7 @@ async def main():
 
 
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    scheduler.add_job(process_scheduler_send_task, 'cron', minute='*', args=(bot,))### minute
+    scheduler.add_job(process_scheduler_send_task, 'cron', minute='*', args=(bot,))### minute / hour
     scheduler.start()
 
 

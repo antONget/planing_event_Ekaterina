@@ -24,8 +24,10 @@ import asyncio
 
 class StartFSM(StatesGroup):
     state_inpup_event = State()
+    state_rename_event = State()
   #  st_2 = State()
    # st_3 = State()
+
 
 
 
@@ -257,3 +259,42 @@ async def show_start_main_menu(clb: CallbackQuery, bot: Bot, state: FSMContext) 
         reply_markup=kb.keyboards_common_four_buttons()
         )
     await clb.answer()
+
+
+@router.message(F.text == 'Переименовать мероприятие 💫')
+async def process_rename_event(message: Message,  bot: Bot, state: FSMContext):
+    """Переименовать выбранное мероприятие и в таблице Even и в таблице CurrentEvent"""
+    logging.info('process_rename_event')
+
+    await state.set_state(StartFSM.state_rename_event)
+    await message.answer(text=f'Вы хотите переименовать мероприятие <b>{await rq.get_current_event()}</b>\nПришлите новое название')
+
+
+@router.message(F.text, StateFilter(StartFSM.state_rename_event))
+async def process_rename_event_set_table(message: Message,  bot: Bot, state: FSMContext):
+    """Установка нового названия мероприятия в таблице Even и в таблице CurrentEvent"""
+    logging.info(f'process_rename_event_set_table --- message.text = {message.text}')
+
+    new_title_event = message.text
+    id_event = await rq.get_current_event_id()
+    await rq.set_current_event(tg_id=message.chat.id, id_event=id_event, title_event=new_title_event)
+    await rq.set_event(tg_id=message.chat.id, id_event=id_event, title_event=new_title_event)
+    await message.answer(text=f'Мероприятие успешно переименовано в <b>"{new_title_event}"</b>')
+    await message.answer(
+    text=f"Добро пожаловать в EventPlannerBot!\nЧат-бот поможет организовать корпоративное мероприятие: подберёт место проведения и исполнителей; "
+        f"спланирует бюджет; напомнит о дедлайнах задач; соберет обратную связь.\n\nПожалуйста, выберите опцию для мероприятия <b>{new_title_event}</b>:",
+        reply_markup=kb.keyboards_common_four_buttons())
+    logging.info(f'await state.get_data() = {await state.get_data()} await state.get_state() = {await state.get_state()}')
+    await state.clear()
+
+
+
+@router.message(F.text == 'Посмотреть обратную связь 👀')
+async def process_show_event_feedback(message: Message,  bot: Bot, state: FSMContext):
+    """Посмотреть обратную связь из таблицы EventFeedback"""
+    logging.info('process_show_event_feedback')
+
+    id_event = await rq.get_current_event_id()
+    for feedback in await rq.get_event_feedbacks():
+        if feedback.id_event == id_event:
+            await message.answer(text=f'Оценка: {feedback.estimation}\nОтзыв: {feedback.feedback}')

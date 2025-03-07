@@ -38,7 +38,7 @@ class AddPerformersFSM(StatesGroup):
 #     state_finish_period_expense = State()
 ###    logging.info(f'await state.get() = {await state.get_state()} --- await state.get_data() = {await state.get_data()}')
 
-@router.message(F.text == 'Исполнители 👥', IsSuperAdmin())
+@router.message(F.text == 'Исполнители 🙋', IsSuperAdmin())
 async def process_performers(message: Message, bot: Bot):
     logging.info('process_performers')
     #await hf.process_del_message_messsage(3, bot, message)
@@ -75,7 +75,7 @@ async def process_choise_category_performer(clb: CallbackQuery, state: FSMContex
         'Назад': 'back_to_process_performers', # сделать отдельной функцией
         }
     keyboard = kb.create_in_kb(1, **dict_kb)
-    await clb.message.edit_text(text=f'Какаого исполнителя вы хотите выбрать?', reply_markup=keyboard)
+    await clb.message.edit_text(text=f'Какого исполнителя вы хотите выбрать?', reply_markup=keyboard)
     await clb.answer()
 
 
@@ -201,10 +201,12 @@ async def process_show_card_performer(clb: CallbackQuery, state: FSMContext, bot
         keyboard = kb.create_in_kb(1, **{'Посмотреть профиль': f'show_profile_performer!{data_.id}',
                                          'Отзывы': f'show_feedback_performer!{data_.id}',
                                          'Примеры работ': f'show_examples_work_performer!{data_.id}',
+                                         f'Выбрать исполнителя {data_.name_performer}': f'choice_performer_set_to_task!{data_.id}',  # Выбрать этот лофт/ресторан/фотографа и др.
                                          'Назад': f'category_performer!{data_.category_performer}'})
     elif data_.category_performer in ['host', 'videograf',  'dj']:
         keyboard = kb.create_in_kb(1, **{'Посмотреть профиль': f'show_profile_performer!{data_.id}',
                                          'Отзывы': f'show_feedback_performer!{data_.id}',
+                                         f'Выбрать исполнителя {data_.name_performer}': f'choice_performer_set_to_task!{data_.id}',  # Выбрать этот лофт/ресторан/фотографа и др.
                                          'Назад': f'category_performer!{data_.category_performer}'})
 
     # media_group = []
@@ -219,11 +221,12 @@ async def process_show_card_performer(clb: CallbackQuery, state: FSMContext, bot
         photo=data_.photo_performer,
         caption=
         f'{data_.name_performer} {data_.description_performer}\n'
-        f'<b>Рейтинг:</b> {data_.reiting_performer}\n'
-        f'<b>Стоимость:</b> {data_.cost_performer} руб/час\n'
-        f'<b>Телефон для связи:</b> {data_.phone_performer}\n',
+        f'⭐️ <b>Рейтинг:</b> {data_.reiting_performer}\n'
+        f'💶 <b>Стоимость:</b> {data_.cost_performer}\n'
+        f'📞 <b>Телефон для связи:</b> {data_.phone_performer}\n',
         reply_markup=keyboard
     )
+
 
     # await clb.message.answer(
     #     text=
@@ -259,6 +262,10 @@ async def process_show_feedback_performer(clb: CallbackQuery, state: FSMContext,
     for data_ in await rq.get_feedbacks():
         if data_.id_performer == id_performer and not data_.feedback.startswith('!_?_!'):
             feedback += f'{data_.feedback}\n\n'
+    if feedback == '':
+        await clb.message.answer(text='Отзывов об исполнителе пока нет.', reply_markup=keyboard)
+        await clb.answer()
+        return
     await clb.message.answer(text=feedback, reply_markup=keyboard)
     await clb.answer()
 
@@ -269,28 +276,57 @@ async def process_show_examples_work_performer(clb: CallbackQuery, state: FSMCon
     #await hf.process_del_message_clb(1, bot, clb)
     id_performer = int(clb.data.split('!')[-1])
     keyboard = kb.create_in_kb(1, **{'Назад': f'name_performer!{id_performer}'})
+    media_group = []
     for data_ in await rq.get_feedbacks():
         if data_.id_performer == id_performer and data_.feedback.startswith('!_?_!'):
             photos = data_.feedback.split('!_?_!')[1]
 
-            media_group = []
+
             for photo in photos.split(','):
                 media_group.append(InputMediaPhoto(media=photo))
                 logging.info(photo)
                 logging.info(media_group)
-            if media_group:
-                # отправляем медиагруппу
-                logging.info(f'media_group')
-                await clb.message.answer_media_group(media=media_group)
-                await clb.message.answer(text='Примеры работ:', reply_markup=keyboard)
-                await clb.answer()
-                return
-            else:
-                await clb.message.answer(text='Примеров работ исполнителя пока нет. Их можно добавить в режире редактирования', reply_markup=keyboard)
-                return
+    if media_group:
+        # отправляем медиагруппу
+        logging.info(f'media_group')
+        await clb.message.answer(text='Примеры работ:')#, reply_markup=keyboard)
+        await clb.message.answer_media_group(media=media_group)
 
-    await clb.message.answer(text='Примеры работ:', reply_markup=keyboard)
+        await clb.answer()
+
+    else:
+        await clb.message.answer(text='Примеров работ исполнителя пока нет. Их можно добавить в режире редактирования', reply_markup=keyboard)
+        await clb.answer()
+        return
+
+    await clb.message.answer(text='Вернуться к карточке исполнителя', reply_markup=keyboard)
     await clb.answer()
+
+
+
+@router.callback_query(F.data.startswith('choice_performer_set_to_task!'))  #  f'Выбрать локацию {data_.name_performer}': f'choice_performer_set_to_task!{data_.id}',
+async def process_choice_performer_set_to_task(clb: CallbackQuery, state: FSMContext, bot: Bot):
+    """В таблицу Task устанавливаем эту локацию с пометкой 'performer' в графе status_task"""
+    logging.info(f'process_choice_performer_set_to_task --- clb.data = {clb.data}')
+    #await hf.process_del_message_clb(1, bot, clb)
+    id_performer = int(clb.data.split('!')[-1])
+    id_event = await rq.get_current_event_id()
+    data_ = await rq.get_performer_by_id(id_performer)
+    # создаем словарь и добавляем его в таблицу Task
+    dict_task = {'tg_id': clb.message.chat.id, 'title_task': data_.name_performer, 'id_event': id_event, 'deadline_task': 'note', 'status_task': 'performer'}
+    logging.info(dict_task)
+    # можно или добавить эту локацию, если ее не было или заменить
+    check_task_performer = 0 # проверка на наличие такого исполнителя в БД, чтобы 2 раза не добавлять
+    for task in await rq.get_tasks():
+        if task.status_task == 'performer' and id_event == task.id_event and data_.name_performer == task.title_task:
+            check_task_performer = task.id
+    if not check_task_performer:
+        await rq.add_task(dict_task)
+    keyboard = kb.create_in_kb(1, **{'Назад': f'name_performer!{id_performer}'})
+    await clb.message.answer(text=f'Вы выбрали исполнителя {data_.name_performer} для мероприятия {await rq.get_current_event()}', reply_markup=keyboard)
+    await clb.answer()
+
+
 
 
 @router.callback_query(F.data == 'back_to_process_performers')

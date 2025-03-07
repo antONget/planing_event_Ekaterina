@@ -33,7 +33,7 @@ class TaskFSM(StatesGroup):
 
 
 
-@router.message(F.text == 'Задачи 📜', IsSuperAdmin())
+@router.message(F.text == 'Задачи 📄', IsSuperAdmin())
 async def process_task(message: Message, bot: Bot):
     logging.info('process_task')
 
@@ -45,7 +45,10 @@ async def process_task(message: Message, bot: Bot):
 
     keyboard = kb.keyboards_main_menu()
     await message.answer(text=f'Вы работаете с мероприятием <b>"{await rq.get_current_event()}"</b>:', reply_markup=keyboard)
-    dict_kb = {'Добавить 📥': 'add_task', 'Мои задачи': 'my_tasks'}
+    dict_kb = {
+        'Добавить 📥': 'add_task',
+        'Мои задачи': 'my_tasks',
+        'Посмотреть выбранное место и исполнителей': 'my_location_and_performers'} #реализовал в конце этого хэндлера
     keyboard = kb.create_in_kb(1, **dict_kb)
 
     await message.answer(text='В этом разделе вы можете добавить, редактировать и удалять задачи мероприятия:', reply_markup=keyboard)
@@ -230,7 +233,7 @@ async def process_scheduler_send_task(bot: Bot):
             await asyncio.sleep(1)
             #if 82800 < delta_deadline.seconds <= 86400:
             #if 86360 < delta_deadline.seconds <= 86400:
-            if delta_deadline.days<1 and delta_deadline.seconds>86360:
+            if 0<=delta_deadline.days<1 and delta_deadline.seconds>86360:
                 logging.info(f'{date_time} - {time_now} = {date_time - time_now} {delta_deadline.seconds}')
                 await bot.send_message(
                         chat_id=task.tg_id,
@@ -238,3 +241,36 @@ async def process_scheduler_send_task(bot: Bot):
                         f'мероприятия <b>"{await rq.get_event_by_id(task.id_event)}"</b> остались одни сутки.'
                 )
                 # logging.info(f'{date_time} - {time_now} = {date_time - time_now} {delta_deadline.seconds}')
+
+
+@router.callback_query(F.data == 'my_location_and_performers')
+async def process_my_location_and_performers(clb: CallbackQuery, state: FSMContext, bot: Bot):
+    """Нажали кнопку Посмотреть выбранное место и исполнителей"""
+    logging.info('process_my_location_and_performers')
+
+    id_current_event = await rq.get_current_event_id()
+    # создаем список из выбранных локаций и испонителей
+    str_location: str = ''
+    str_performer: str = ''
+    for task in await rq.get_tasks():
+        if task.id_event == id_current_event:
+            if task.status_task == 'location':
+                str_location += task.title_task+'\n'
+            elif task.status_task == 'performer':
+                str_performer += task.title_task+'\n'
+    dict_kb = {'Назад': 'go_to_process_task'}
+    keyboard = kb.create_in_kb(1, **dict_kb)
+    if str_location:
+        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбрана локация:\n <b>{str_location}</b>')
+    else:
+        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> локация не выбрана.')
+
+    if str_performer:
+        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбраны исполнители:\n{str_performer}',
+                                 reply_markup=keyboard)
+    else:
+        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> исполнители не выбраны.',
+                                 reply_markup=keyboard)
+
+
+    await clb.answer()

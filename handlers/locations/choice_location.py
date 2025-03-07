@@ -71,7 +71,7 @@ async def process_choise_category_location(clb: CallbackQuery, state: FSMContext
         'Назад': 'back_to_process_locations', # сделать отдельной функцией
         }
     keyboard = kb.create_in_kb(1, **dict_kb)
-    await clb.message.edit_text(text=f'Какаого локацию вы хотите выбрать?', reply_markup=keyboard)
+    await clb.message.edit_text(text=f'Какую локацию вы хотите выбрать?', reply_markup=keyboard)
     await clb.answer()
 
 
@@ -185,6 +185,7 @@ async def process_show_card_location(clb: CallbackQuery, state: FSMContext, bot:
     data_ = await rq.get_location_by_id(id_location)
     keyboard = kb.create_in_kb(1, **{'Посмотреть профиль': f'show_profile_location!{data_.id}',
                                      'Посмотреть фотографии локации': f'show_photo_location!{data_.id}',
+                                     f'Выбрать локацию {data_.name_location}': f'choice_location_set_to_task!{data_.id}',  # Выбрать этот лофт/ресторан/фотографа и др.
                                      'Назад': f'category_location!{data_.category_location}'})
     #list_photo = data_.photo_location.split(',')
     #media_group.append(InputMediaPhoto(media=photo.split('!')[0], caption=caption))
@@ -204,12 +205,12 @@ async def process_show_card_location(clb: CallbackQuery, state: FSMContext, bot:
     await clb.message.answer_photo(
         photo=data_.photo_location,
         caption=f'{data_.name_location} - {data_.description_location}\n'
-        f'<b>Адрес:</b> {data_.adress_location}\n'
-        f'<b>Площадь:</b> {data_.area_location}\n'
-        f'<b>Вместимость:</b> {data_.capacity_location}\n'
-        f'<b>Рейтинг:</b> {data_.reiting_location}\n'
-        f'<b>Стоимость:</b> от {data_.cost_location} руб/час\n'
-        f'<b>Телефон для связи:</b> {data_.phone_location}\n',
+        f'🏢 <b>Адрес:</b> {data_.adress_location}\n'
+        f'💥 <b>Площадь:</b> {data_.area_location}\n'
+        f'👫 <b>Вместимость:</b> {data_.capacity_location}\n'
+        f'⭐️ <b>Рейтинг:</b> {data_.reiting_location}\n'
+        f'💶 <b>Стоимость:</b> {data_.cost_location}\n'
+        f'📞 <b>Телефон для связи:</b> {data_.phone_location}\n',
         reply_markup=keyboard
     )
     await clb.answer()
@@ -287,6 +288,33 @@ async def process_show_photo_location(clb: CallbackQuery, state: FSMContext, bot
     await clb.answer()
 
 
+@router.callback_query(F.data.startswith('choice_location_set_to_task!'))  #  f'Выбрать локацию {data_.name_location}': f'choice_location_set_to_task!{data_.id}',
+async def process_choice_location_set_to_task(clb: CallbackQuery, state: FSMContext, bot: Bot):
+    """В таблицу Task устанавливаем эту локацию с пометкой 'location' в графе status_task"""
+    logging.info(f'process_choice_location_set_to_task --- clb.data = {clb.data}')
+    #await hf.process_del_message_clb(1, bot, clb)
+    id_location = int(clb.data.split('!')[-1])
+    id_event = await rq.get_current_event_id()
+    data_ = await rq.get_location_by_id(id_location)
+    # создаем словарь и добавляем его в таблицу Task
+    dict_task = {'tg_id': clb.message.chat.id, 'title_task': data_.name_location, 'id_event': id_event, 'deadline_task': 'note', 'status_task': 'location'}
+    logging.info(dict_task)
+    # можно или добавить эту локацию, если ее не было или заменить
+    id_task_location = 0 # такого id в таблице task быть не может, и если в конце 0, то добавляем строку
+    for task in await rq.get_tasks():
+        if task.status_task == 'location' and id_event == task.id_event:
+            id_task_location = task.id
+    if id_task_location:
+        await rq.set_task(
+            id_task=task.id,
+            title_task=data_.name_location
+            )
+        logging.info(f'title_task = {data_.name_location} --- data_.name_location = {data_.name_location}')
+    else:
+        await rq.add_task(dict_task)
+    keyboard = kb.create_in_kb(1, **{'Назад': f'name_location!{id_location}'})
+    await clb.message.answer(text=f'Вы выбрали локацию {data_.name_location} для мероприятия {await rq.get_current_event()}', reply_markup=keyboard)
+    await clb.answer()
 
 
 @router.callback_query(F.data == 'back_to_process_locations')

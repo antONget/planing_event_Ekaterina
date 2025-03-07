@@ -50,7 +50,7 @@ async def process_my_tasks(clb: CallbackQuery, state: FSMContext, bot: Bot):
     await hf.check_status_task()
 
     for task in await rq.get_tasks(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        if id_event == task.id_event: # если эта Задача принадлежит нужному Мероприятию
+        if id_event == task.id_event and task.status_task!='location' and task.status_task!='performer': # если эта Задача принадлежит нужному Мероприятию
 
             text_button = f'{task.title_task} {dict_status[task.status_task]}'
             callback = f'do_task!{task.id}!{task.title_task}!{task.status_task}!{task.id_event}'
@@ -96,7 +96,7 @@ async def process_forward_task(clb: CallbackQuery, state: FSMContext) -> None:
     await hf.check_status_task()
 
     for task in await rq.get_tasks(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        if id_event == task.id_event: # если эта Задача принадлежит нужному Мероприятию
+        if id_event == task.id_event and task.status_task!='location' and task.status_task!='performer': # если эта Задача принадлежит нужному Мероприятию
 
             text_button = f'{task.title_task} {dict_status[task.status_task]}'
             callback = f'do_task!{task.id}!{task.title_task}!{task.status_task}!{task.id_event}'
@@ -141,7 +141,7 @@ async def process_back_choice_performer(clb: CallbackQuery, state: FSMContext) -
     await hf.check_status_task()
 
     for task in await rq.get_tasks(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        if id_event == task.id_event: # если эта Задача принадлежит нужному Мероприятию
+        if id_event == task.id_event and task.status_task!='location' and task.status_task!='performer': # если эта Задача принадлежит нужному Мероприятию
 
             text_button = f'{task.title_task} {dict_status[task.status_task]}'
             callback = f'do_task!{task.id}!{task.title_task}!{task.status_task}!{task.id_event}'
@@ -269,7 +269,7 @@ async def process_edit_task(clb: CallbackQuery, state: FSMContext, bot: Bot):
     else:
         #await clb.message.answer(text=f'Вы работаете с мероприятием <b>"{title_event}"</b>:', reply_markup=keyboard_reply)
         await clb.message.edit_text(text=f'Какое поле для {note_task} <b>"{title_task}"</b> необходимо изменить?', reply_markup=keyboard)
-    await clb.answer()
+        await clb.answer()
 
 
 @router.callback_query(F.data.startswith('edit_title_task'))

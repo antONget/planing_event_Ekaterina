@@ -46,7 +46,7 @@ async def check_status_task() -> None:
     logging.info('check_status_task')
 
     for task in await rq.get_tasks():
-        if task.deadline_task != 'note':
+        if task.deadline_task and task.deadline_task != 'note':
             logging.info(f'task.deadline_task={task.deadline_task}')
             if not validate_overdue(task.deadline_task) and task.status_task == 'active':
                 logging.info(f'not validate_overdue(task.deadline_task) = {not validate_overdue(task.deadline_task)} --- task.status_task = {task.status_task}')

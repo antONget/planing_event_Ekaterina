@@ -90,6 +90,17 @@ class Feedback(Base):
     id_performer: Mapped[int] = mapped_column(BigInteger)
     feedback: Mapped[str] = mapped_column(String)
 
+
+class EventFeedback(Base):
+    __tablename__ = 'event_feedback'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger)
+   # username: Mapped[str] = mapped_column(String)
+    id_event: Mapped[int] = mapped_column(BigInteger)
+    estimation: Mapped[int] = mapped_column(Integer, default=0)
+    feedback: Mapped[str] = mapped_column(String)
+
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

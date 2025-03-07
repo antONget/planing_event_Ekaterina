@@ -36,7 +36,7 @@ class ExpenseFSM(StatesGroup):
 
 
 
-@router.message(F.text == 'Запланировать бюджет 💵', IsSuperAdmin())
+@router.message(F.text == 'Запланировать бюджет 💸', IsSuperAdmin())
 async def process_expense(message: Message, bot: Bot):
     logging.info('process_expense')
     #await hf.process_del_message_messsage(3, bot, message)

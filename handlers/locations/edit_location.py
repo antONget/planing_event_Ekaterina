@@ -318,7 +318,7 @@ async def process_edit_card_location(clb: CallbackQuery, state: FSMContext, bot:
             f'<b>Профиль:</b> {profile}\n',
             reply_markup=keyboard
         )
-    await clb.answer()
+    #await clb.answer()
 
 
 @router.callback_query(F.data.startswith('end_edit_location!'))  #   'Имя': f'end_edit_location!name_location!{data_.id}',

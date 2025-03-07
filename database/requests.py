@@ -1,4 +1,4 @@
-from database.models import User,  Event, Tasks, CurrentEvent, Expenses, Performers, Locations, Feedback, async_session
+from database.models import User,  Event, Tasks, CurrentEvent, Expenses, Performers, Locations, Feedback, EventFeedback,async_session
 from sqlalchemy import select
 import logging
 from dataclasses import dataclass
@@ -65,13 +65,22 @@ async def add_location(data: dict) -> None:
         session.add(Locations(**data))
         await session.commit()
 
-#  Feedbacks
+#  Feedback
 async def add_feedback(data: dict) -> None:
     """ Добавление нового отзыва """
     logging.info(f'add_feedback')
     async with async_session() as session:
         session.add(Feedback(**data))
         await session.commit()
+
+#  EventFeedback
+async def add_event_feedback(data: dict) -> None:
+    """ Добавление нового отзыва  о мероприятии"""
+    logging.info(f'add_event_feedback')
+    async with async_session() as session:
+        session.add(EventFeedback(**data))
+        await session.commit()
+
 
 # GET  GET  GET
 
@@ -186,6 +195,13 @@ async def get_feedbacks() -> Feedback:
     async with async_session() as session:
         return await session.scalars(select(Feedback))
 
+# EventFeedback
+async def get_event_feedbacks() -> EventFeedback:
+    logging.info(f'get_event_feedbacks')
+    async with async_session() as session:
+        return await session.scalars(select(EventFeedback))
+
+
 # async def get_feedback_by_id(id_performer: int) -> Locations:
 #     """Возвращает строку отзыва из таблицы Feedbacks по её id"""
 #     logging.info(f'get_feedback_by_id')
@@ -194,6 +210,17 @@ async def get_feedbacks() -> Feedback:
 
 
 # SET  SET  SET
+
+# Event
+
+async def set_event(tg_id: int, id_event: int, title_event: str ) -> Event:
+    logging.info(f'set_event {tg_id} {id_event} {title_event}')
+    async with async_session() as session:
+        event: Event = await session.scalar(select(Event).where(Event.id == id_event))
+        event.tg_id = tg_id
+        event.title_event = title_event
+        await session.commit()
+
 
 # Current_event
 

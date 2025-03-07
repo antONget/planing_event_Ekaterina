@@ -147,10 +147,30 @@ async def process_forward(clb: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.endswith('!feedback_event'))
+async def process_input_estimation(clb: CallbackQuery, state: FSMContext, bot: Bot) -> None:
+    """Сперва пользователь ставит оценку на инлайн клавиатуре"""
+    logging.info(f'process_input_estimation: {clb.message.chat.id} ----- clb.data = {clb.data}')
+
+    id_event = int(clb.data.split('!')[0])
+    kb_dict = {'1': f'{id_event}!{1}!feedback_event_input',
+               '2': f'{id_event}!{2}!feedback_event_input',
+               '3': f'{id_event}!{3}!feedback_event_input',
+               '4': f'{id_event}!{4}!feedback_event_input',
+               '5': f'{id_event}!{5}!feedback_event_input'}
+    await clb.message.answer(text=f'Поставте оценку мероприятию <b>"{await rq.get_event_by_id(id_event)}"</b>.',
+                             reply_markup=kb.create_in_kb(1, **kb_dict))
+    await clb.answer()
+
+
+@router.callback_query(F.data.endswith('!feedback_event_input'))
 async def process_input_feed(clb: CallbackQuery, state: FSMContext, bot: Bot) -> None:
+    """Сохраняем оценку в FSM, перевод в состояние ожидания ввода отзыва"""
     logging.info(f'process_input_feed: {clb.message.chat.id} ----- clb.data = {clb.data}')
 
-    id_event = clb.data.split('!')[0]
+    id_event = int(clb.data.split('!')[0])
+    estimation = int(clb.data.split('!')[1])
+
+    await state.update_data(state_estimation_event = estimation)
     await state.update_data(state_id_event = id_event)
     await state.set_state(FeedbackFSM.state_feedback)
     #await hf.process_del_message_clb(1, bot, clb)
@@ -164,6 +184,7 @@ async def process_send_feedback(message: Message, state: FSMContext, bot: Bot) -
 
     text_feedback = message.text
     id_event = (await state.get_data())['state_id_event']
+    estimation = (await state.get_data())['state_estimation_event']
     title_event = await rq.get_event_by_id(id_event)
 
     #tg_id_event = data_event.tg_id
@@ -174,7 +195,12 @@ async def process_send_feedback(message: Message, state: FSMContext, bot: Bot) -
 
     await bot.send_message(
         chat_id=tg_id_admin_event,
-        text=f'Пользователь {user} оставил отзыв по мероприятию <b>"{title_event}"</b>: \n{text_feedback}'
+        text=f'Пользователь {user} оставил отзыв по мероприятию <b>"{title_event}"</b>:\nОценка: {estimation} \n{text_feedback}'
     )
     await message.answer(text='Благодарим за оставленный отзыв, нам очень важно вае мнение!')
+
+    # сохраняем в БД этот отзыв
+    dict_feedback = {'tg_id': message.chat.id, 'id_event': id_event, 'estimation': estimation, 'feedback': text_feedback}
+
+    await rq.add_event_feedback(dict_feedback)
     await process_feedback(message, bot, state)

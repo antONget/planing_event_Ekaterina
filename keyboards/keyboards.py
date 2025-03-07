@@ -87,13 +87,15 @@ def create_kb_pagination(
 
 def keyboards_common_four_buttons() -> ReplyKeyboardMarkup:
     logging.info("keyboards_common_four_buttons")
-    button_1 = KeyboardButton(text='Задачи 📜')
+    button_1 = KeyboardButton(text='Задачи 📄')
     button_2 = KeyboardButton(text='Выбрать место 📍')
-    button_3 = KeyboardButton(text='Запланировать бюджет 💵')
-    button_4 = KeyboardButton(text='Исполнители 👥')
-    button_5 = KeyboardButton(text='Выбрать новое мероприятие 🆕')
+    button_3 = KeyboardButton(text='Запланировать бюджет 💸')
+    button_4 = KeyboardButton(text='Исполнители 🙋')
+    button_5 = KeyboardButton(text='Посмотреть обратную связь 👀')
+    button_6 = KeyboardButton(text='Переименовать мероприятие 💫')
+    button_7 = KeyboardButton(text='Выбрать новое мероприятие 🆕')
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[[button_1, button_2], [button_3, button_4], [button_5]],
+        keyboard=[[button_1, button_2], [button_3, button_4], [button_5], [button_6], [button_7]],
         resize_keyboard=True
     )
     return keyboard

@@ -317,7 +317,7 @@ async def process_edit_card_performer(clb: CallbackQuery, state: FSMContext, bot
             f'<b>Профиль:</b> {profile}\n',
             reply_markup=keyboard
         )
-    await clb.answer()
+
 
 
 
