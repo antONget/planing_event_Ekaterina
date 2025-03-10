@@ -33,7 +33,7 @@ class TaskFSM(StatesGroup):
 
 
 
-@router.message(F.text == 'Задачи 📄', IsSuperAdmin())
+@router.message(F.text == 'Задачи 📄')#, IsSuperAdmin())
 async def process_task(message: Message, bot: Bot):
     logging.info('process_task')
 
@@ -243,34 +243,241 @@ async def process_scheduler_send_task(bot: Bot):
                 # logging.info(f'{date_time} - {time_now} = {date_time - time_now} {delta_deadline.seconds}')
 
 
+
+# Списки исполнителей, которые добавлены к мероприятию должны быть редактируемы
+# выводин на кнопках из клавиатуры с пагинацией
 @router.callback_query(F.data == 'my_location_and_performers')
-async def process_my_location_and_performers(clb: CallbackQuery, state: FSMContext, bot: Bot):
-    """Нажали кнопку Посмотреть выбранное место и исполнителей"""
+async def process_my_location_and_performers(clb: CallbackQuery):
+    """Нажали кнопку Посмотреть выбранное место и исполнителей с возможностью перейти в карточку и удалить человека из этого списка"""
     logging.info('process_my_location_and_performers')
 
     id_current_event = await rq.get_current_event_id()
     # создаем список из выбранных локаций и испонителей
     str_location: str = ''
-    str_performer: str = ''
+    list_performers: list = []
     for task in await rq.get_tasks():
         if task.id_event == id_current_event:
             if task.status_task == 'location':
                 str_location += task.title_task+'\n'
             elif task.status_task == 'performer':
-                str_performer += task.title_task+'\n'
-    dict_kb = {'Назад': 'go_to_process_task'}
-    keyboard = kb.create_in_kb(1, **dict_kb)
+                logging.info(f'task.title_task = {task.title_task}')
+                id_performer = task.title_task.split('!?!')[0]
+                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                list_performers.append(list_)
+                #str_performer += task.title_task+'\n'
+    #dict_kb = {'Назад': 'go_to_process_task'}
+    #keyboard = kb.create_in_kb(1, **dict_kb)
+    logging.info(f'list_performers = {list_performers}')
+
     if str_location:
-        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбрана локация:\n <b>{str_location}</b>')
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбрана локация:\n <b>{str_location}</b>'
     else:
-        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> локация не выбрана.')
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> локация не выбрана.'
 
-    if str_performer:
-        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбраны исполнители:\n{str_performer}',
-                                 reply_markup=keyboard)
+    if list_performers:
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбраны исполнители:\n'
+        keyboard = kb.create_kb_pagination(
+            list_button=list_performers,
+            back=0,
+            forward=2,
+            count=5,
+            prefix='performer_from_tasks', # это для колбэка кнопок <<< и >>>
+            button_go_away='go_to_process_task'
+        )
+
     else:
-        await clb.message.answer(text=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> исполнители не выбраны.',
-                                 reply_markup=keyboard)
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> исполнители не выбраны.'
+        keyboard = kb.create_in_kb(1, **{'Назад': 'go_to_process_task'})
 
-
+    logging.info(f'Мы тут --- text_location = {text_location} --- text_performer = {text_performer}')
+    try:
+        logging.info(f'Мы тут try --')
+        await clb.message.edit_text(text=f'{text_location}\n{text_performer}.', reply_markup=keyboard)
+    except:
+        logging.info(f'Мы тут except--')
+        await clb.message.edit_text(text=f'{text_location}  \n{text_performer}', reply_markup=keyboard)
     await clb.answer()
+
+
+
+
+# >>>>
+@router.callback_query(F.data.startswith('button_forward!performer_from_tasks'))
+async def process_forward_performer_from_tasks(clb: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_forward_performer_from_tasks: {clb.message.chat.id} ----- clb.data = {clb.data}')
+
+    forward = int(clb.data.split('!')[-1]) + 1
+    back = forward - 2
+    logging.info(f'forward = {forward} --- back = {back}')
+
+    id_current_event = await rq.get_current_event_id()
+    # создаем список из выбранных локаций и испонителей
+    str_location: str = ''
+    list_performers: list = []
+    for task in await rq.get_tasks():
+        if task.id_event == id_current_event:
+            if task.status_task == 'location':
+                str_location += task.title_task+'\n'
+            elif task.status_task == 'performer':
+                id_performer = task.title_task.split('!?!')[0]
+                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                list_performers.append(list_)
+
+    logging.info(f'list_performers = {list_performers}')
+
+    keyboard = kb.create_kb_pagination(
+                    list_button=list_performers,
+                    back=back,
+                    forward=forward,
+                    count=5,
+                    prefix='performer_from_tasks', # это для колбэка кнопок <<< и >>>
+                    button_go_away='go_to_process_task'
+                )
+
+    if str_location:
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбрана локация:\n <b>{str_location}</b>'
+    else:
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> локация не выбрана.'
+
+    if list_performers:
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбраны исполнители:\n'
+        keyboard = kb.create_kb_pagination(
+            list_button=list_performers,
+            back=0,
+            forward=2,
+            count=5,
+            prefix='performer_from_tasks', # это для колбэка кнопок <<< и >>>
+            button_go_away='go_to_process_task'
+        )
+
+    else:
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> исполнители не выбраны.'
+        keyboard = kb.create_in_kb(1, **{'Назад': 'go_to_process_task'})
+
+
+    try:
+        await clb.message.edit_text(text=f'{text_location}\n{text_performer}', reply_markup=keyboard)
+    except:
+        #await hf.process_del_message_clb(1, bot, clb)
+        await clb.message.edit_text(text=f'{text_location}  \n{text_performer}', reply_markup=keyboard)
+    await clb.answer()
+
+
+# <<<<
+@router.callback_query(F.data.startswith('button_back!choice_performer'))
+async def process_back_choice_performer(clb: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_back_choice_performer: {clb.message.chat.id} ----- clb.data = {clb.data}')
+
+    back = int(clb.data.split('!')[-1]) - 1
+    forward = back + 2
+    logging.info(f'forward = {forward} --- back = {back}')
+
+    id_current_event = await rq.get_current_event_id()
+    # создаем список из выбранных локаций и испонителей
+    str_location: str = ''
+    list_performers: list = []
+    for task in await rq.get_tasks():
+        if task.id_event == id_current_event:
+            if task.status_task == 'location':
+                str_location += task.title_task+'\n'
+            elif task.status_task == 'performer':
+                id_performer = task.title_task.split('!?!')[0]
+                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                list_performers.append(list_)
+
+    keyboard = kb.create_kb_pagination(
+                    list_button=list_performers,
+                    back=back,
+                    forward=forward,
+                    count=5,
+                    prefix='performer_from_tasks', # это для колбэка кнопок <<< и >>>
+                    button_go_away='go_to_process_task'
+                )
+
+
+    if str_location:
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбрана локация:\n <b>{str_location}</b>'
+    else:
+        text_location=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> локация не выбрана.'
+
+    if list_performers:
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> выбраны исполнители:\n'
+        keyboard = kb.create_kb_pagination(
+            list_button=list_performers,
+            back=0,
+            forward=2,
+            count=5,
+            prefix='performer_from_tasks', # это для колбэка кнопок <<< и >>>
+            button_go_away='go_to_process_task'
+        )
+
+    else:
+        text_performer=f'Для мероприятия <b>"{await rq.get_current_event()}"</b> исполнители не выбраны.'
+        keyboard = kb.create_in_kb(1, **{'Назад': 'go_to_process_task'})
+
+
+    try:
+        await clb.message.edit_text(text=f'{text_location}\n{text_performer}', reply_markup=keyboard)
+    except:
+        #await hf.process_del_message_clb(1, bot, clb)
+        await clb.message.edit_text(text=f'{text_location}  \n{text_performer}', reply_markup=keyboard)
+    await clb.answer()
+
+
+@router.callback_query(F.data.startswith('list_choised_performer'))
+async def process_list_choised_performer(clb: CallbackQuery, bot: Bot) -> None:
+    logging.info(f'process_list_choised_performer: {clb.message.chat.id} ----- clb.data = {clb.data}') # f'list_choised_performer!{task.id}!{id_performer}']
+
+    id_performer = int(clb.data.split('!')[-1])
+    id_task = int(clb.data.split('!')[-2])
+    dict_kb = {'Посмотреть карточку исполнителя': f'show_card_performer!{id_task}!{id_performer}',
+               'Удалить из списка исполнителей': f'delete_from_list_performer!{id_task}!{id_performer}',
+                'Назад': 'my_location_and_performers'}
+    keyboard = kb.create_in_kb(1, **dict_kb)
+
+    await clb.message.answer(
+        text=f'Вы можете посмотреть карточку исполнителя {(await rq.get_performer_by_id(id_performer)).name_performer}',
+        reply_markup=keyboard)
+    await clb.answer()
+
+
+@router.callback_query(F.data.startswith('delete_from_list_performer'))
+async def process_delete_from_list_performer(clb: CallbackQuery, state: FSMContext) -> None:
+    """Удалить исполнителя Из списка добавленных к мероприятию"""
+    logging.info(f'process_delete_from_list_performer: {clb.message.chat.id} ----- clb.data = {clb.data}') # f'list_choised_performer!{task.id}!{id_performer}']
+
+    id_task = int(clb.data.split('!')[-2])
+    id_performer = int(clb.data.split('!')[-1])
+    # dict_kb = {'Посмотреть карточку исполнителя': 'show_cart_performer',
+    #            'Удалить из списка исполнителей': 'delete_from_list_performer'}
+    # keyboard = kb.create_in_kb(1, **dict_kb)
+    await rq.delete_task(id_task=id_task)
+    keyboard = kb.create_in_kb(1, **{'Ok': 'my_location_and_performers'})
+    await clb.message.answer(
+        text=f'Исполнитель {(await rq.get_performer_by_id(id_performer)).name_performer} успешно удален из списка исполнителей '
+            f'мероприятия <b>"{await rq.get_current_event()}"</b>',
+            reply_markup=keyboard)
+    await process_my_location_and_performers(clb=clb)
+    await clb.answer()
+
+
+
+@router.callback_query(F.data.startswith('show_card_performer'))
+async def process_show_card_performer(clb: CallbackQuery, state: FSMContext) -> None:
+    """Посмотреть карточку исполнителя Из списка добавленных к мероприятию"""
+    logging.info(f'process_show_card_performer: {clb.message.chat.id} ----- clb.data = {clb.data}') # f'list_choised_performer!{task.id}!{id_performer}']
+
+    id_task = int(clb.data.split('!')[-2])
+    id_performer = int(clb.data.split('!')[-1])
+
+    keyboard = kb.create_in_kb(1, **{'Назад': f'list_choised_performer!{id_task}!{id_performer}'})
+    data_ = await rq.get_performer_by_id(id_performer)
+    await clb.message.answer_photo(
+        photo=data_.photo_performer,
+        caption=
+        f'{data_.name_performer} {data_.description_performer}\n'
+        f'⭐️ <b>Рейтинг:</b> {data_.reiting_performer}\n'
+        f'💶 <b>Стоимость:</b> {data_.cost_performer}\n'
+        f'📞 <b>Телефон для связи:</b> {data_.phone_performer}\n',
+        reply_markup=keyboard
+    )

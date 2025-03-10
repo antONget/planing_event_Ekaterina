@@ -66,7 +66,8 @@ async def process_next_add_location_photo(message: Message, state: FSMContext, b
     dict_location = {
         'name_location': data_['name_add_location'],
         'category_location': data_['category_add_location'],
-        'photo_location': data_['photo_add_location']
+        'photo_location': data_['photo_add_location'],
+        'tg_id': message.chat.id
         }
     await rq.add_location(dict_location)
 

@@ -203,7 +203,7 @@ async def process_show_kb_from_category(clb: CallbackQuery, bot: Bot, state: FSM
     # Для категории считаем сууму расходов тут
     amount_expense_category: int = 0
     for expense in await rq.get_expenses():
-        if expense.title_expense == title_expense:
+        if expense.title_expense == title_expense and expense.tg_id == clb.message.chat.id:
             list_ = [f'🗓 {expense.date_expense}   {expense.amount_expense} ₽', f'{expense.id}!expense_category']
             list_expenses.append(list_)
             amount_expense_category += int(expense.amount_expense)

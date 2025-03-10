@@ -123,7 +123,7 @@ async def process_next_add_performer_show_name(clb: CallbackQuery, state: FSMCon
 
     list_performers: list = []
     for performer in await rq.get_performers():
-        if performer.category_performer == category:
+        if performer.category_performer == category and performer.tg_id == clb.message.chat.id:
             list_ = [performer.name_performer, f'name_edit_performer!{performer.id}']
             list_performers.append(list_)
     logging.info(f'list_performers = {list_performers}')
@@ -158,7 +158,7 @@ async def process_forward_next_add_performer_show_name(clb: CallbackQuery, state
 
     list_performers: list = []
     for performer in await rq.get_performers():
-        if performer.category_performer == category:
+        if performer.category_performer == category and performer.tg_id == clb.message.chat.id:
             list_ = [performer.name_performer, f'name_edit_performer!{performer.id}']
             list_performers.append(list_)
     logging.info(f'list_performers = {list_performers}')
@@ -194,7 +194,7 @@ async def process_back_next_add_performer_show_name(clb: CallbackQuery, state: F
 
     list_performers: list = []
     for performer in await rq.get_performers():
-        if performer.category_performer == category:
+        if performer.category_performer == category and performer.tg_id == clb.message.chat.id:
             list_ = [performer.name_performer, f'name_edit_performer!{performer.id}']
             list_performers.append(list_)
     logging.info(f'list_performers = {list_performers}')

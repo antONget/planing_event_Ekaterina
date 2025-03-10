@@ -125,7 +125,7 @@ async def process_next_add_location_show_name(clb: CallbackQuery, state: FSMCont
 
     list_locations: list = []
     for location in await rq.get_locations():
-        if location.category_location == category:
+        if location.category_location == category and location.tg_id == clb.message.chat.id:
             list_ = [location.name_location, f'name_edit_location!{location.id}']
             list_locations.append(list_)
     logging.info(f'list_locations = {list_locations}')
@@ -160,7 +160,7 @@ async def process_forward_next_add_location_show_name(clb: CallbackQuery, state:
 
     list_locations: list = []
     for location in await rq.get_locations():
-        if location.category_location == category:
+        if location.category_location == category and location.tg_id == clb.message.chat.id:
             list_ = [location.name_location, f'name_edit_location!{location.id}']
             list_locations.append(list_)
     logging.info(f'list_locations = {list_locations}')
@@ -196,7 +196,7 @@ async def process_back_next_add_location_show_name(clb: CallbackQuery, state: FS
 
     list_locations: list = []
     for location in await rq.get_locations():
-        if location.category_location == category:
+        if location.category_location == category and location.tg_id == clb.message.chat.id:
             list_ = [location.name_location, f'name_edit_location!{location.id}']
             list_locations.append(list_)
     logging.info(f'list_locations = {list_locations}')
@@ -287,7 +287,9 @@ async def process_edit_card_location(clb: CallbackQuery, state: FSMContext, bot:
         #await hf.process_del_message_clb(1, bot, clb)
     #except:
         #await hf.process_del_message_messsage(1, bot, message=clb.message)
+
     try:
+        logging.info('tryyyyyyyyyyyyy')
         await clb.message.answer_photo(
             photo=photo,
             caption=
@@ -304,6 +306,7 @@ async def process_edit_card_location(clb: CallbackQuery, state: FSMContext, bot:
         )
         await clb.answer()
     except:
+        logging.info('exceeeeeeeeeeeeeeeept')
         await clb.answer_photo(
             photo=photo,
             caption=

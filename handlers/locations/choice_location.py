@@ -38,7 +38,7 @@ class AddLocationsFSM(StatesGroup):
 #     state_finish_period_expense = State()
 ###    logging.info(f'await state.get() = {await state.get_state()} --- await state.get_data() = {await state.get_data()}')
 
-@router.message(F.text == 'Выбрать место 📍', IsSuperAdmin())
+@router.message(F.text == 'Выбрать место 📍')#, IsSuperAdmin())
 async def process_locations(message: Message, bot: Bot):
     logging.info('process_locations')
     #await hf.process_del_message_messsage(3, bot, message)
@@ -49,6 +49,7 @@ async def process_locations(message: Message, bot: Bot):
     dict_kb = {'Выбрать локацию': 'choice_location', 'Изменить список': 'edit_location'}
     keyboard = kb.create_in_kb(2, **dict_kb)
     await message.answer(text='Выберите действия для локации.', reply_markup=keyboard)
+
 
 
 @router.callback_query(F.data == 'choice_location')

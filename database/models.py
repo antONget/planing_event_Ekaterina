@@ -69,6 +69,7 @@ class Performers(Base):
 class Locations(Base):
     __tablename__ = 'locations'
     id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger)
     name_location: Mapped[str] = mapped_column(String)
     category_location: Mapped[int] = mapped_column(BigInteger)
     description_location: Mapped[str] = mapped_column(String, default='не указано')

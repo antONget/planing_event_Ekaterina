@@ -40,15 +40,8 @@ async def process_start_command(message: Message,  bot: Bot, state: FSMContext):
 
     await state.set_state(state=None)
     # перевод пользователя в режи ожидания ввода нового мероприятия
-    await state.set_state(StartFSM.state_inpup_event)
 
-    # for i in range (10):
-    #     try:
-    #         await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id-i)
-    #         logging.info(f'try --- i = {i}')
-    #     except:
-    #         logging.info(f'pass --- i = {i}')
-    #         pass
+
 
     # добавление пользователя в БД если еще его там нет
     user: User = await rq.get_user_by_id(tg_id=message.from_user.id)
@@ -61,36 +54,50 @@ async def process_start_command(message: Message,  bot: Bot, state: FSMContext):
         data_user = {"tg_id": message.from_user.id,
                      "user_name": username}
         await rq.add_user(data=data_user)
+    kb_dict = {'Оставить отзыв о мероприятии': 'start_handler_feedback',
+               'Начать организовывать мероприятие': 'start_handler_event'}
+    keyboard = kb.create_in_kb(1, **kb_dict)
+    await message.answer(text=f'Вы можете либо оставить отзыв о мероприятии, которое посетили,'
+                         f' либо начать организовывать свое мороприятие, а также редактировать уже созданное.',
+                         reply_markup=keyboard)
 
+
+@router.callback_query(F.data == 'start_handler_event')
+async def process_start_handler_event(clb: CallbackQuery, state: FSMContext, bot: Bot):
+    """Показываем список мероприятий для данного пользователя"""
+    logging.info(f'process_start_handler_event --- clb.data = {clb.data}')
+    await state.set_state(StartFSM.state_inpup_event)
     # Вывод клавиатуры в зависимости от статуса пользователя
-    if await check_super_admin(telegram_id=message.from_user.id):
-        # Если администратор, то
-            # или список мероприятий,
-            # или перевод в режим ожидания ввода названия мероприятия
-        #dict_events: dict = {}
-        list_events: list = []
-        for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
+    # if await check_super_admin(telegram_id=message.from_user.id):
+    #     # Если администратор, то
+    #         # или список мероприятий,
+    #         # или перевод в режим ожидания ввода названия мероприятия
+    #     #dict_events: dict = {}
+    list_events: list = []
+    for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
+        if event.tg_id == clb.message.chat.id:
             key = event.id
             value = event.title_event
             #dict_events[key] = value
             list_events.append([value, f'{key}!events_start'])
-        logging.info(f'list_events = {list_events}')
+    logging.info(f'list_events = {list_events}')
 
-        if not list_events: # если пусто в таблце Event
+    if not list_events: # если пусто в таблце Event
 
-            await message.answer(text=f'Введите название мероприятия')
-        else: # если в таблице Event есть строки вывожу на кнопки
-            keyboard = kb.create_kb_pagination(
-                list_button=list_events,
-                back=0,
-                forward=2,
-                count=5,
-                prefix='start',
-                #button_set_state='set_state_add_event'
-            )
-            await message.answer(text='Добавьте новое мероприятие или продолжите планировать уже созданное', reply_markup=keyboard)
-    else: # Если э то не админ, запускаем функцию оставления отзыва
-        await process_feedback(message, bot, state)
+        await clb.message.answer(text=f'Введите название мероприятия')
+    else: # если в таблице Event есть строки вывожу на кнопки
+        keyboard = kb.create_kb_pagination(
+            list_button=list_events,
+            back=0,
+            forward=2,
+            count=5,
+            prefix='start',
+            #button_set_state='set_state_add_event'
+        )
+        await clb.message.answer(text='Добавьте новое мероприятие или продолжите планировать уже созданное', reply_markup=keyboard)
+    # else: # Если э то не админ, запускаем функцию оставления отзыва
+    #     await process_feedback(message, bot, state)
+    await clb.answer()
 
 
 # >>>>
@@ -105,9 +112,10 @@ async def process_forward(clb: CallbackQuery) -> None:
     logging.info(f'forward = {forward} --- back = {back}')
     list_events: list = []
     for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        key = event.id
-        value = event.title_event
-        list_events.append([value, f'{key}!events_start'])
+        if event.tg_id == clb.message.chat.id:
+            key = event.id
+            value = event.title_event
+            list_events.append([value, f'{key}!events_start'])
 
     keyboard = kb.create_kb_pagination(
                     list_button=list_events,
@@ -142,9 +150,10 @@ async def process_forward(clb: CallbackQuery) -> None:
 
     list_events: list = []
     for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        key = event.id
-        value = event.title_event
-        list_events.append([value, f'{key}!events_start'])
+        if event.tg_id == clb.message.chat.id:
+            key = event.id
+            value = event.title_event
+            list_events.append([value, f'{key}!events_start'])
 
     keyboard = kb.create_kb_pagination(
                     list_button=list_events,
@@ -182,11 +191,7 @@ async def process_add_event(message: Message, state: FSMContext, bot: Bot) -> No
 
     if message.text != 'Главное меню 🏠':
 
-        # for i in range (9):
-        #     try:
-        #         await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id-i)
-        #     except:
-        #         pass
+
 
         title_event = message.text
         dict_event: dict = {'tg_id': tg_id, 'title_event': title_event}

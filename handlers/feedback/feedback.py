@@ -30,7 +30,8 @@ class FeedbackFSM(StatesGroup):
 
 
 # Этот хэндлер срабатывает на команду /start если пользователь не админ
-async def process_feedback(message: Message,  bot: Bot, state: FSMContext):
+@router.callback_query(F.data == 'start_handler_feedback')
+async def process_feedback(clb: CallbackQuery,  bot: Bot, state: FSMContext):
     logging.info(f'process_feedback')
 
 
@@ -49,7 +50,7 @@ async def process_feedback(message: Message,  bot: Bot, state: FSMContext):
 
     if not list_events: # если пусто в таблце Event
 
-        await message.answer(text=f'Мероприятий нет.')
+        await clb.message.answer(text=f'Мероприятий нет.')
     else: # если в таблице Event есть строки вывожу на кнопки
         keyboard = kb.create_kb_pagination(
             list_button=list_events,
@@ -59,7 +60,7 @@ async def process_feedback(message: Message,  bot: Bot, state: FSMContext):
             prefix='feedback',
             #button_set_state='set_state_add_event'
         )
-        await message.answer(text=f'<b>Добро пожаловать в EventPlannerBot!</b>\nОставьте отзыв о посещенном мероприятии.\n'
+        await clb.message.answer(text=f'<b>Добро пожаловать в EventPlannerBot!</b>\nОставьте отзыв о посещенном мероприятии.\n'
                              f'Выберите мероприятие на которое вы бы хотели оставить отзыв.', reply_markup=keyboard)
 
 
@@ -193,14 +194,16 @@ async def process_send_feedback(message: Message, state: FSMContext, bot: Bot) -
     user_name = (await rq.get_user_by_id(message.chat.id)).user_name
     user = user_name if user_name != 'user_name' else message.chat.id
 
-    await bot.send_message(
-        chat_id=tg_id_admin_event,
-        text=f'Пользователь {user} оставил отзыв по мероприятию <b>"{title_event}"</b>:\nОценка: {estimation} \n{text_feedback}'
-    )
-    await message.answer(text='Благодарим за оставленный отзыв, нам очень важно вае мнение!')
+    # await bot.send_message(
+    #     chat_id=tg_id_admin_event,
+    #     text=f'Пользователь {user} оставил отзыв по мероприятию <b>"{title_event}"</b>:\nОценка: {estimation} \n{text_feedback}'
+    # )
+    keyboard = kb.create_in_kb(1, **{'Ok': 'start_handler_feedback'})
+    await message.answer(text='Благодарим за оставленный отзыв, нам очень важно вае мнение!',
+                         reply_markup=keyboard)
 
     # сохраняем в БД этот отзыв
     dict_feedback = {'tg_id': message.chat.id, 'id_event': id_event, 'estimation': estimation, 'feedback': text_feedback}
 
     await rq.add_event_feedback(dict_feedback)
-    await process_feedback(message, bot, state)
+    # await process_feedback(, bot, state)
