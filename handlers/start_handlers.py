@@ -34,14 +34,12 @@ class StartFSM(StatesGroup):
 
 # Этот хэндлер срабатывает на команду /start
 @router.message(CommandStart())
-@router.message(F.text == 'Выбрать новое мероприятие 🆕')
+#@router.message(F.text == 'Выбрать новое мероприятие 🆕')
 async def process_start_command(message: Message,  bot: Bot, state: FSMContext):
     logging.info(f'process_start_command')
 
     await state.set_state(state=None)
     # перевод пользователя в режи ожидания ввода нового мероприятия
-
-
 
     # добавление пользователя в БД если еще его там нет
     user: User = await rq.get_user_by_id(tg_id=message.from_user.id)
@@ -60,6 +58,9 @@ async def process_start_command(message: Message,  bot: Bot, state: FSMContext):
     await message.answer(text=f'Вы можете либо оставить отзыв о мероприятии, которое посетили,'
                          f' либо начать организовывать свое мороприятие, а также редактировать уже созданное.',
                          reply_markup=keyboard)
+
+
+
 
 
 @router.callback_query(F.data == 'start_handler_event')
@@ -303,3 +304,34 @@ async def process_show_event_feedback(message: Message,  bot: Bot, state: FSMCon
     for feedback in await rq.get_event_feedbacks():
         if feedback.id_event == id_event:
             await message.answer(text=f'Оценка: {feedback.estimation}\nОтзыв: {feedback.feedback}')
+
+
+@router.message(F.text == 'Выбрать новое мероприятие 🆕')
+async def process_go_to_process_start_handler_event(message: Message,  bot: Bot, state: FSMContext):
+    logging.info(f'process_go_to_process_start_handler_event')
+
+    await state.set_state(state=None)
+    list_events: list = []
+    for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
+        if event.tg_id == message.chat.id:
+            key = event.id
+            value = event.title_event
+            #dict_events[key] = value
+            list_events.append([value, f'{key}!events_start'])
+    logging.info(f'list_events = {list_events}')
+
+    if not list_events: # если пусто в таблце Event
+
+        await message.answer(text=f'Введите название мероприятия')
+    else: # если в таблице Event есть строки вывожу на кнопки
+        keyboard = kb.create_kb_pagination(
+            list_button=list_events,
+            back=0,
+            forward=2,
+            count=5,
+            prefix='start',
+            #button_set_state='set_state_add_event'
+        )
+        await message.answer(text='Добавьте новое мероприятие или продолжите планировать уже созданное', reply_markup=keyboard)
+    # else: # Если э то не админ, запускаем функцию оставления отзыва
+    #     await process_feedback(message, bot, state)

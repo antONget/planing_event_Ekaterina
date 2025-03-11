@@ -41,9 +41,7 @@ Traceback (most recent call last):
   File "C:\Users\TBG\telegram_bot\planing_event_ekaterina\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 43, in call
     return await wrapped()
            ^^^^^^^^^^^^^^^
-  File "c:\Users\TBG\telegram_bot\planing_event_ekaterina\handlers\tasks\edit_tasks.py", line 311, in process_edit_title_task_input_text
-    await process_edit_task(clb = message, state = state, bot=bot)
-  File "c:\Users\TBG\telegram_bot\planing_event_ekaterina\handlers\tasks\edit_tasks.py", line 234, in process_edit_task
-    id_task = dict_data_state['id_task']
-              ~~~~~~~~~~~~~~~^^^^^^^^^^^
-KeyError: 'id_task'
+  File "c:\Users\TBG\telegram_bot\planing_event_ekaterina\handlers\expenses\add_expense.py", line 83, in process_add_title_expense
+    temp_dict_expenses[expense.title_expense].append(expense.id)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: ''

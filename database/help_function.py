@@ -7,11 +7,11 @@ async def get_max_id_event() -> int:
     logging.info('get_max_id_event')
     """возвращает максимальное id (primery key) из таблицы Event"""
 
-    tasks = await rq.get_tasks()
+    events = await rq.get_events()
     count_id = 1
-    for task in tasks:
-        if task.id > count_id:
-            count_id = task.id
+    for event in events:
+        if event.id > count_id:
+            count_id = event.id
     logging.info(f'return_max_id_event = {count_id}')
     return count_id
 

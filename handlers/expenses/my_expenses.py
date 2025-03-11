@@ -71,7 +71,7 @@ async def process_my_expenses_category(clb: CallbackQuery, state: FSMContext, bo
     ##temp_dict_expenses: dict = {}
     for expense in await rq.get_expenses():
         if expense.id_event == (await rq.get_current_event_id()):
-            if not expense.title_expense in temp_list_this_expenses:
+            if not expense.title_expense in temp_list_this_expenses and expense.tg_id == clb.message.chat.id:
                 temp_list_this_expenses.append(expense.title_expense)
                 ##temp_dict_expenses.update({expense.title_expense: [expense.id]})
                 id_expense = expense.id
@@ -124,7 +124,7 @@ async def process_forward_expense_category(clb: CallbackQuery) -> None:
     list_expenses: list = []
     temp_list_this_expenses: list = []
     for expense in await rq.get_expenses():
-        if expense.id_event == (await rq.get_current_event_id()):
+        if expense.id_event == (await rq.get_current_event_id()) and expense.tg_id == clb.message.chat.id:
             if not expense.title_expense in temp_list_this_expenses:
                 temp_list_this_expenses.append(expense.title_expense)
                 id_expense = expense.id
@@ -161,7 +161,7 @@ async def process_back_extense_category(clb: CallbackQuery) -> None:
     list_expenses: list = []
     temp_list_this_expenses: list = []
     for expense in await rq.get_expenses():
-        if expense.id_event == (await rq.get_current_event_id()):
+        if expense.id_event == (await rq.get_current_event_id()) and expense.tg_id == clb.message.chat.id:
             if not expense.title_expense in temp_list_this_expenses:
                 temp_list_this_expenses.append(expense.title_expense)
                 id_expense = expense.id
@@ -265,7 +265,7 @@ async def process_forward_for_keyboard_expense_category(clb: CallbackQuery, stat
     # Для категории считаем сууму расходов тут
     #amount_expense_category: int = 0
     for expense in await rq.get_expenses():
-        if expense.title_expense == title_expense:
+        if expense.title_expense == title_expense and expense.tg_id == clb.message.chat.id:
             list_ = [f'🗓 {expense.date_expense}   {expense.amount_expense} ₽', f'{expense.id}!expense_category']
             list_expenses.append(list_)
             #amount_expense_category += int(expense.amount_expense)
@@ -314,7 +314,7 @@ async def process_back_extense_period(clb: CallbackQuery, state: FSMContext) -> 
     # Для категории считаем сууму расходов тут
     #amount_expense_category: int = 0
     for expense in await rq.get_expenses():
-        if expense.title_expense == title_expense:
+        if expense.title_expense == title_expense and expense.tg_id == clb.message.chat.id:
             list_ = [f'🗓 {expense.date_expense}   {expense.amount_expense} ₽', f'{expense.id}!expense_category']
             list_expenses.append(list_)
             #amount_expense_category += int(expense.amount_expense)

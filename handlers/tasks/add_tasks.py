@@ -131,11 +131,7 @@ async def process_add_task_deadline(message: Message, state: FSMContext, bot: Bo
     logging.info(f'process_add_task_deadline: {message.chat.id} ----- message.text = {message.text}')
 
     dict_state = await state.get_data()
-    # for i in range (3):
-    #     try:
-    #         await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id-i)
-    #     except:
-    #         pass
+
     if validate_date(message.text): # проверка на правильность формы записи
         if validate_overdue(message.text):
             await state.update_data({'title_new_task_deadline': message.text})
@@ -170,7 +166,7 @@ async def process_add_task_deadline(message: Message, state: FSMContext, bot: Bo
         await message.answer(text=f'Некорректно указан дедлайн. Пришлите дедлайн для задачи'
                                   f' {dict_state["title_new_task"]}. Формат записи: чч:мм дд.мм.гггг',
                              reply_markup=keyboard)
-
+    logging.info(f'dict_task = {dict_task} --- dict_state = {dict_state}')
 
 
 @router.callback_query(F.data == 'write_as_mark')
@@ -261,9 +257,10 @@ async def process_my_location_and_performers(clb: CallbackQuery):
                 str_location += task.title_task+'\n'
             elif task.status_task == 'performer':
                 logging.info(f'task.title_task = {task.title_task}')
-                id_performer = task.title_task.split('!?!')[0]
-                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
-                list_performers.append(list_)
+                if '!?!' in task.title_task:
+                    id_performer = task.title_task.split('!?!')[0]
+                    list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                    list_performers.append(list_)
                 #str_performer += task.title_task+'\n'
     #dict_kb = {'Назад': 'go_to_process_task'}
     #keyboard = kb.create_in_kb(1, **dict_kb)
@@ -319,9 +316,10 @@ async def process_forward_performer_from_tasks(clb: CallbackQuery, state: FSMCon
             if task.status_task == 'location':
                 str_location += task.title_task+'\n'
             elif task.status_task == 'performer':
-                id_performer = task.title_task.split('!?!')[0]
-                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
-                list_performers.append(list_)
+                if '!?!' in task.title_task:
+                    id_performer = task.title_task.split('!?!')[0]
+                    list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                    list_performers.append(list_)
 
     logging.info(f'list_performers = {list_performers}')
 
@@ -381,9 +379,10 @@ async def process_back_choice_performer(clb: CallbackQuery, state: FSMContext) -
             if task.status_task == 'location':
                 str_location += task.title_task+'\n'
             elif task.status_task == 'performer':
-                id_performer = task.title_task.split('!?!')[0]
-                list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
-                list_performers.append(list_)
+                if '!?!' in task.title_task:
+                    id_performer = task.title_task.split('!?!')[0]
+                    list_ = [task.title_task.split('!?!')[1], f'list_choised_performer!{task.id}!{id_performer}']
+                    list_performers.append(list_)
 
     keyboard = kb.create_kb_pagination(
                     list_button=list_performers,

@@ -42,10 +42,11 @@ async def process_feedback(clb: CallbackQuery,  bot: Bot, state: FSMContext):
 
     list_events: list = []
     for event in await rq.get_events(): # какие есть мероприятия в таблице Event, если она пустая, то перевод в режим ожидания ввода названия
-        key = event.id
-        value = event.title_event
-        #dict_events[key] = value
-        list_events.append([value, f'{key}!feedback_event'])
+        if event.title_event:
+            key = event.id
+            value = event.title_event
+            #dict_events[key] = value
+            list_events.append([value, f'{key}!feedback_event'])
     logging.info(f'list_events = {list_events}')
 
     if not list_events: # если пусто в таблце Event
@@ -184,6 +185,7 @@ async def process_send_feedback(message: Message, state: FSMContext, bot: Bot) -
     logging.info(f'process_send_feedback: {message.chat.id} ----- message.text = {message.text}')
 
     text_feedback = message.text
+    logging.info(await state.get_data())
     id_event = (await state.get_data())['state_id_event']
     estimation = (await state.get_data())['state_estimation_event']
     title_event = await rq.get_event_by_id(id_event)
@@ -198,12 +200,16 @@ async def process_send_feedback(message: Message, state: FSMContext, bot: Bot) -
     #     chat_id=tg_id_admin_event,
     #     text=f'Пользователь {user} оставил отзыв по мероприятию <b>"{title_event}"</b>:\nОценка: {estimation} \n{text_feedback}'
     # )
-    keyboard = kb.create_in_kb(1, **{'Ok': 'start_handler_feedback'})
-    await message.answer(text='Благодарим за оставленный отзыв, нам очень важно вае мнение!',
-                         reply_markup=keyboard)
-
     # сохраняем в БД этот отзыв
     dict_feedback = {'tg_id': message.chat.id, 'id_event': id_event, 'estimation': estimation, 'feedback': text_feedback}
 
     await rq.add_event_feedback(dict_feedback)
     # await process_feedback(, bot, state)
+    await message.answer(text='Благодарим за оставленный отзыв, нам очень важно ваше мнение!')
+
+    kb_dict = {'Оставить отзыв о мероприятии': 'start_handler_feedback',
+               'Начать организовывать мероприятие': 'start_handler_event'}
+    keyboard = kb.create_in_kb(1, **kb_dict)
+    await message.answer(text=f'Вы можете либо оставить отзыв о мероприятии, которое посетили,'
+                         f' либо начать организовывать свое мороприятие, а также редактировать уже созданное.',
+                         reply_markup=keyboard)

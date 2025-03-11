@@ -276,8 +276,9 @@ async def process_show_photo_location(clb: CallbackQuery, state: FSMContext, bot
         if media_group:
             # отправляем медиагруппу
             logging.info(f'media_group')
+            await clb.message.answer(text=f'Фотографии локации {data_.name_location}:')
             await clb.message.answer_media_group(media=media_group)
-            await clb.message.answer(text=f'Фотографии локации {data_.name_location}:', reply_markup=keyboard)
+            await clb.message.answer(text=f'Вернуться назад к карточке локации {data_.name_location}', reply_markup=keyboard)
             await clb.answer()
             return
         else:

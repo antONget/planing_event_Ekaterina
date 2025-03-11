@@ -71,17 +71,16 @@ async def process_add_title_expense(clb: CallbackQuery, state: FSMContext, bot: 
 
     list_expenses: list = []
     temp_list_this_expenses: list = []
-    temp_dict_expenses: dict = {}
+
     for expense in await rq.get_expenses():
-        if not expense.title_expense in temp_list_this_expenses:
+        if not expense.title_expense in temp_list_this_expenses and expense.tg_id == clb.message.chat.id:
             temp_list_this_expenses.append(expense.title_expense)
-            temp_dict_expenses.update({expense.title_expense: [expense.id]})
+
             id_expense = expense.id
             title_expense = expense.title_expense
             list_expenses.append([title_expense, f'{id_expense}!add_expense_start'])
-        else:
-            temp_dict_expenses[expense.title_expense].append(expense.id)
-    logging.info(f'list_events = {list_expenses} --- temp_list_this_expenses = {temp_list_this_expenses} ---- temp_dict_expenses = {temp_dict_expenses}')
+
+    logging.info(f'list_events = {list_expenses} --- temp_list_this_expenses = {temp_list_this_expenses} ---- ')
 
 
 
@@ -115,7 +114,7 @@ async def process_forward_add_expense(clb: CallbackQuery) -> None:
     temp_list_this_expenses: list = []
     # temp_dict_expenses: dict = {}
     for expense in await rq.get_expenses():
-        if not expense.title_expense in temp_list_this_expenses:
+        if not expense.title_expense in temp_list_this_expenses and expense.tg_id == clb.message.chat.id:
             temp_list_this_expenses.append(expense.title_expense)
             # temp_dict_expenses.update({expense.title_expense: [expense.id]})
             id_expense = expense.id
@@ -155,7 +154,7 @@ async def process_forward_extense_category(clb: CallbackQuery) -> None:
     temp_list_this_expenses: list = []
     # temp_dict_expenses: dict = {}
     for expense in await rq.get_expenses():
-        if not expense.title_expense in temp_list_this_expenses:
+        if not expense.title_expense in temp_list_this_expenses and expense.tg_id == clb.message.chat.id:
             temp_list_this_expenses.append(expense.title_expense)
             # temp_dict_expenses.update({expense.title_expense: [expense.id]})
             id_expense = expense.id
