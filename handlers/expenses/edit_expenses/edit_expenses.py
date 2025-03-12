@@ -138,5 +138,6 @@ async def process_confirm_edit_expense(clb: CallbackQuery, state: FSMContext, bo
         await rq.set_expense(id_expense=id_expense, amount_expense=state_data['edit_amount_expense'])
     if 'edit_date_expense'in (state_data):
         await rq.set_expense(id_expense=id_expense, date_expense=state_data['edit_date_expense'])
+    await clb.message.answer(text=f'Расход <b>"{(await rq.get_expense_by_id(id_expense)).title_expense}"</b> успешно обнавлен.')
     await clb.answer()
     await process_edit_expense(clb, state, bot)

@@ -202,7 +202,10 @@ async def process_show_card_location(clb: CallbackQuery, state: FSMContext, bot:
     #     # отправляем медиагруппу
     #     logging.info(f'media_group')
     #     await clb.message.answer_media_group(media=media_group)
-
+    if data_.category_location == 'loft':
+        postfix = 'руб/час'
+    elif data_.category_location == 'restaurant':
+        postfix = 'руб/чел'
     await clb.message.answer_photo(
         photo=data_.photo_location,
         caption=f'{data_.name_location} - {data_.description_location}\n'
@@ -210,7 +213,7 @@ async def process_show_card_location(clb: CallbackQuery, state: FSMContext, bot:
         f'💥 <b>Площадь:</b> {data_.area_location}\n'
         f'👫 <b>Вместимость:</b> {data_.capacity_location}\n'
         f'⭐️ <b>Рейтинг:</b> {data_.reiting_location}\n'
-        f'💶 <b>Стоимость:</b> {data_.cost_location}\n'
+        f'💶 <b>Стоимость:</b> от {data_.cost_location} {postfix}\n'
         f'📞 <b>Телефон для связи:</b> {data_.phone_location}\n',
         reply_markup=keyboard
     )
@@ -310,7 +313,7 @@ async def process_choice_location_set_to_task(clb: CallbackQuery, state: FSMCont
     if id_task_location:
         await rq.set_task(
             id_task=id_task_location,
-            title_task=data_.name_location
+            title_task=f'{data_.id}!?!{data_.name_location}'
             )
         logging.info(f'title_task = {data_.name_location} --- data_.name_location = {data_.name_location}')
     else:
