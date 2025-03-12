@@ -41,7 +41,7 @@ Traceback (most recent call last):
   File "C:\Users\TBG\telegram_bot\planing_event_ekaterina\venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 43, in call
     return await wrapped()
            ^^^^^^^^^^^^^^^
-  File "c:\Users\TBG\telegram_bot\planing_event_ekaterina\handlers\expenses\add_expense.py", line 83, in process_add_title_expense
-    temp_dict_expenses[expense.title_expense].append(expense.id)
-    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
-KeyError: ''
+  File "c:\Users\TBG\telegram_bot\planing_event_ekaterina\handlers\locations\choice_location.py", line 302, in process_choice_location_set_to_task
+    dict_task = {'tg_id': clb.message.chat.id, 'title_task': f'{data_.id_location}!?!{data_.name_location}', 'id_event': id_event, 'deadline_task': 'note', 'status_task': 'location'}
+                                                                ^^^^^^^^^^^^^^^^^
+AttributeError: 'Locations' object has no attribute 'id_location'. Did you mean: 'area_location'?

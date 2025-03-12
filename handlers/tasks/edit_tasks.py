@@ -230,6 +230,7 @@ async def process_edit_task(clb: CallbackQuery, state: FSMContext, bot: Bot):
     await state.set_state(state=None)
 
     dict_data_state = await state.get_data()
+    logging.info(f'dict_data_state = {dict_data_state}')
     if 'new_title_task' in list(dict_data_state)  or 'new_deadline' in list(dict_data_state): # работаем с message а не clb
         id_task = dict_data_state['id_task']
         status_task = dict_data_state['status_task']
@@ -379,26 +380,18 @@ async def process_confirm_edit_task(clb: CallbackQuery, state: FSMContext, bot: 
     """Нажали кнопку Подтвердить."""
     logging.info(f'process_confirm_edit_task ---')
 
-    # for i in range (3):
-    #     try:
-    #         await bot.delete_message(chat_id=clb.message.chat.id, message_id=clb.message.message_id-i)
-    #     except:
-    #         pass
-    #     try:
-    #         await bot.delete_message(chat_id=clb.chat.id, message_id=clb.message_id-i) # clb это message
-    #     except:
-    #         pass
-
     dict_data_state = await state.get_data()
+    logging.info(f'dict_data_state = {dict_data_state}')
+
     id_task = dict_data_state['id_task']
     if 'new_title_task' in list(dict_data_state):
         title_task = dict_data_state['new_title_task']
         await rq.set_task(id_task=id_task, title_task=title_task)
     else:
         title_task = (await rq.get_task_by_id(id_task)).title_task
-    if 'deadline_task' in list(dict_data_state):
-        deadline_task = dict_data_state['deadline_task']
-        await rq.set_task(id_task=id_task, deadline_task=deadline_task)
+    if 'new_deadline' in list(dict_data_state):
+        new_deadline = dict_data_state['new_deadline']
+        await rq.set_task(id_task=id_task, deadline_task=new_deadline)
     keyboard = kb.keyboards_main_menu()
     await clb.message.answer(text=f'Задача <b>"{title_task}"</b> успешно обновлена.', reply_markup=keyboard)
     await clb.answer()

@@ -34,8 +34,8 @@ async def main():
    # Конфигурируем логирование
     logging.basicConfig(
         level=logging.INFO,
-        ###filename="py_log.log", # закомментировать при разработке
-        ###filemode='w', # закомментировать при разработке
+        filename="py_log.log", # закомментировать при разработке
+        filemode='w', # закомментировать при разработке
         format='%(filename)s:%(lineno)d #%(levelname)-8s '
                '[%(asctime)s] - %(name)s - %(message)s')
 

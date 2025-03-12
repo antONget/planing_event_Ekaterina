@@ -315,8 +315,9 @@ async def process_choice_performer_set_to_task(clb: CallbackQuery, state: FSMCon
     # можно или добавить эту локацию, если ее не было или заменить
     check_task_performer = 0 # проверка на наличие такого исполнителя в БД, чтобы 2 раза не добавлять
     for task in await rq.get_tasks():
-        if task.status_task == 'performer' and id_event == task.id_event and data_.name_performer == task.title_task:
+        if task.status_task == 'performer' and id_event == task.id_event and data_.name_performer == task.title_task.split('!?!')[-1]:
             check_task_performer = task.id
+            logging.info(f'check_task_performer = {check_task_performer}')
     if not check_task_performer:
         await rq.add_task(dict_task)
     keyboard = kb.create_in_kb(1, **{'Назад': f'name_performer!{id_performer}'})

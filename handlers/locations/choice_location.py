@@ -299,21 +299,23 @@ async def process_choice_location_set_to_task(clb: CallbackQuery, state: FSMCont
     id_event = await rq.get_current_event_id()
     data_ = await rq.get_location_by_id(id_location)
     # создаем словарь и добавляем его в таблицу Task
-    dict_task = {'tg_id': clb.message.chat.id, 'title_task': data_.name_location, 'id_event': id_event, 'deadline_task': 'note', 'status_task': 'location'}
+    dict_task = {'tg_id': clb.message.chat.id, 'title_task': f'{data_.id}!?!{data_.name_location}', 'id_event': id_event, 'deadline_task': 'note', 'status_task': 'location'}
     logging.info(dict_task)
     # можно или добавить эту локацию, если ее не было или заменить
     id_task_location = 0 # такого id в таблице task быть не может, и если в конце 0, то добавляем строку
     for task in await rq.get_tasks():
-        if task.status_task == 'location' and id_event == task.id_event:
+        if task.status_task == 'location' and id_event == task.id_event and task.tg_id == clb.message.chat.id:
             id_task_location = task.id
+            logging.info(f'Мероприятие было добавлено в TASK с этим id: id_task_location = {id_task_location}')
     if id_task_location:
         await rq.set_task(
-            id_task=task.id,
+            id_task=id_task_location,
             title_task=data_.name_location
             )
         logging.info(f'title_task = {data_.name_location} --- data_.name_location = {data_.name_location}')
     else:
         await rq.add_task(dict_task)
+        logging.info('ЛОКАЦИЯ ОТСУТСТВОВАЛА - ДОБАВЛЯЕМ')
     keyboard = kb.create_in_kb(1, **{'Назад': f'name_location!{id_location}'})
     await clb.message.answer(text=f'Вы выбрали локацию {data_.name_location} для мероприятия {await rq.get_current_event()}', reply_markup=keyboard)
     await clb.answer()

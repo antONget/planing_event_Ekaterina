@@ -1,36 +1,13 @@
-main.py:33 #INFO     [2025-02-15 13:27:19,300] - __main__ - Starting bot
-dispatcher.py:527 #INFO     [2025-02-15 13:27:19,969] - aiogram.dispatcher - Start polling
-dispatcher.py:341 #INFO     [2025-02-15 13:27:20,036] - aiogram.dispatcher - Run polling for bot @Events_Planner_Bot_Bot id=7613252869 - 'EventPlanner'
-start_handlers.py:34 #INFO     [2025-02-15 13:27:54,376] - root - process_start_command
-requests.py:42 #INFO     [2025-02-15 13:27:54,635] - root - get_user_by_id 943040396
-admin_filter.py:15 #INFO     [2025-02-15 13:27:54,651] - root - check_manager
-requests.py:48 #INFO     [2025-02-15 13:27:54,651] - root - get_events
-start_handlers.py:66 #INFO     [2025-02-15 13:27:54,655] - root - dict_events = {1: 'Мероприятие 1', 2: 'Мероприятие 2', 3: 'Мероприятие 3', 4: 'Мероприятие 4', 5: 'Мероприятие 5', 6: 'Мероприятие 6'} ---- list_events = [['Мероприятие 1', '1!events_start'], ['Мероприятие 2', '2!events_start'], ['Мероприятие 3', '3!events_start'], ['Мероприятие 4', '4!events_start'], ['Мероприятие 5', '5!events_start'], ['Мероприятие 6', '6!events_start']]
-keyboards.py:22 #INFO     [2025-02-15 13:27:54,655] - root - create_kb_pagination
-dispatcher.py:172 #INFO     [2025-02-15 13:27:54,768] - aiogram.event - Update id=824278998 is handled. Duration 391 ms by bot id=7613252869
-start_handlers.py:88 #INFO     [2025-02-15 13:28:01,525] - root - process_forward: 943040396 ----- clb.data = button_forward!start!0
-requests.py:48 #INFO     [2025-02-15 13:28:01,525] - root - get_events
-keyboards.py:22 #INFO     [2025-02-15 13:28:01,528] - root - create_kb_pagination
-dispatcher.py:172 #INFO     [2025-02-15 13:28:01,797] - aiogram.event - Update id=824278999 is handled. Duration 281 ms by bot id=7613252869
-start_handlers.py:88 #INFO     [2025-02-15 13:28:03,115] - root - process_forward: 943040396 ----- clb.data = button_forward!start!0
-requests.py:48 #INFO     [2025-02-15 13:28:03,116] - root - get_events
-keyboards.py:22 #INFO     [2025-02-15 13:28:03,118] - root - create_kb_pagination
-dispatcher.py:172 #INFO     [2025-02-15 13:28:03,260] - aiogram.event - Update id=824279000 is handled. Duration 140 ms by bot id=7613252869
-start_handlers.py:124 #INFO     [2025-02-15 13:28:04,665] - root - process_back: 943040396 ----- clb.data = button_back!start!0
-requests.py:48 #INFO     [2025-02-15 13:28:04,665] - root - get_events
-keyboards.py:22 #INFO     [2025-02-15 13:28:04,668] - root - create_kb_pagination
-dispatcher.py:172 #INFO     [2025-02-15 13:28:04,899] - aiogram.event - Update id=824279001 is handled. Duration 235 ms by bot id=7613252869
-start_handlers.py:88 #INFO     [2025-02-15 13:28:07,209] - root - process_forward: 943040396 ----- clb.data = button_forward!start!0
-requests.py:48 #INFO     [2025-02-15 13:28:07,209] - root - get_events
-keyboards.py:22 #INFO     [2025-02-15 13:28:07,213] - root - create_kb_pagination
-dispatcher.py:172 #INFO     [2025-02-15 13:28:07,533] - aiogram.event - Update id=824279002 is handled. Duration 328 ms by bot id=7613252869
-start_handlers.py:156 #INFO     [2025-02-15 13:28:09,537] - root - process_set_state_add_event: 943040396 ----- clb.data = set_state_add_event
-dispatcher.py:172 #INFO     [2025-02-15 13:28:09,742] - aiogram.event - Update id=824279003 is handled. Duration 203 ms by bot id=7613252869
-start_handlers.py:165 #INFO     [2025-02-15 13:28:27,207] - root - process_add_event: 943040396 ----- message.text = Мероприятие 7
-requests.py:29 #INFO     [2025-02-15 13:28:27,207] - root - add_event
-keyboards.py:68 #INFO     [2025-02-15 13:28:27,220] - root - keyboards_common_four_buttons
-keyboards.py:68 #INFO     [2025-02-15 13:28:27,221] - root - keyboards_common_four_buttons
-dispatcher.py:172 #INFO     [2025-02-15 13:28:27,327] - aiogram.event - Update id=824279004 is handled. Duration 125 ms by bot id=7613252869
-dispatcher.py:172 #INFO     [2025-02-15 13:28:34,730] - aiogram.event - Update id=824279005 is handled. Duration 78 ms by bot id=7613252869
-dispatcher.py:554 #INFO     [2025-02-15 13:29:48,194] - aiogram.dispatcher - Polling stopped
-dispatcher.py:359 #INFO     [2025-02-15 13:29:48,455] - aiogram.dispatcher - Polling stopped for bot @Events_Planner_Bot_Bot id=7613252869 - 'EventPlanner'
+planing_event_bot.py:43 #INFO     [2025-03-12 08:31:46,561] - __main__ - Starting bot
+base.py:507 #INFO     [2025-03-12 08:31:47,008] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+base.py:1090 #INFO     [2025-03-12 08:31:47,010] - apscheduler.scheduler - Added job "process_scheduler_send_task" to job store "default"
+base.py:214 #INFO     [2025-03-12 08:31:47,010] - apscheduler.scheduler - Scheduler started
+dispatcher.py:527 #INFO     [2025-03-12 08:31:47,373] - aiogram.dispatcher - Start polling
+dispatcher.py:341 #INFO     [2025-03-12 08:31:47,464] - aiogram.dispatcher - Run polling for bot @Events_Planner_Bot_Bot id=7613252869 - 'EventPlanner'
+start_handlers.py:39 #INFO     [2025-03-12 08:36:35,899] - root - process_start_command
+requests.py:89 #INFO     [2025-03-12 08:36:35,900] - root - get_user_by_id 943040396
+dispatcher.py:172 #INFO     [2025-03-12 08:36:36,314] - aiogram.event - Update id=824284751 is handled. Duration 422 ms by bot id=7613252869
+dispatcher.py:554 #INFO     [2025-03-12 08:37:06,157] - aiogram.dispatcher - Polling stopped
+dispatcher.py:219 #ERROR    [2025-03-12 08:37:06,278] - aiogram.dispatcher - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientOSError: [Errno 1] [SSL: APPLICATION_DATA_AFTER_CLOSE_NOTIFY] application data after close notify (_ssl.c:2685)
+dispatcher.py:221 #WARNING  [2025-03-12 08:37:06,278] - aiogram.dispatcher - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7613252869)
+dispatcher.py:359 #INFO     [2025-03-12 08:37:06,430] - aiogram.dispatcher - Polling stopped for bot @Events_Planner_Bot_Bot id=7613252869 - 'EventPlanner'
